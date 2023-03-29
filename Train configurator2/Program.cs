@@ -56,11 +56,11 @@
                         break;
 
                     case MenuShowTrainParam:
-                        //_config.ShowTrainParameters();
+                        terminal.ShowTrainParameters();
                         break;
 
                     case MenuSendTrain:
-                        //SendTrain();
+                        terminal.SendTrain();
                         break;
 
                     case MenuExit:
@@ -79,7 +79,7 @@
 
             if (terminal.IsTrainFormed == true)
             {
-                readyToGo = "ГОТОВ";
+                readyToGo = "ГОТОВ!";
                 trainStatus = "Сформирован";
             }
             else
@@ -95,13 +95,9 @@
 
         private void CleanConsoleString()
         {
-            Console.CursorLeft = 0;
-
-            int currentLineCursor = Console.CursorTop;
-
+            Console.SetCursorPosition(0, 0);
             Console.Write(new string(' ', Console.WindowWidth));
-            Console.CursorTop = currentLineCursor;
-            Console.SetCursorPosition(0, currentLineCursor);
+            Console.SetCursorPosition(0, 0);
         }
 
         private void CleanConsoleBelowLine()
@@ -124,12 +120,20 @@
         public int Tickets { get; private set; } = 0;
         public bool IsTrainFormed { get; private set; } = false;
 
+        private int _wagonNumber;
+
         private List<Wagon> _train = new List<Wagon>();
 
         private Random _rand = new Random();
         private Wagon _wagon = new Wagon();
 
-        
+        private Wagon[] _wagons = new Wagon[]
+            {
+                new Wagon("Плацкарт", 54),
+                new Wagon("Купе", 36),
+                new Wagon("СВ", 18),
+                new Wagon("Люкс", 6),
+            };
 
         public void CreateDirection()
         {
@@ -145,10 +149,12 @@
                 to = Console.ReadLine();
 
                 Direction = $"{from} - {to}";
+
+                Console.WriteLine($"Направление \"{from}\" - \"{to}\" создано");
             }
             else
             {
-                Console.WriteLine("Нельзя изменить направление, на которое уже проданы билеты.");
+                Console.WriteLine("Нельзя изменить направление, на которое уже проданы билеты");
             }
         }
 
@@ -175,77 +181,134 @@
 
         public void CompileTrain()
         {
-            Wagon[] wagons = new Wagon[]
-            {
-                new Wagon("ReservedSeat", 54),
-                new Wagon("Coupe", 36),
-                new Wagon("SV", 18),
-                new Wagon("Lux", 6),
-            };
-
             int tempPax = Tickets;
             int reservedSeatCount = 0;
             int coupeCount = 0;
             int svCount = 0;
             int luxCount = 0;
 
-            if (Tickets > 0) 
-            {
-                reservedSeatCount = tempPax / wagons[0].Seats;
-                tempPax -= tempPax % wagons[0].Seats;
-                
-                if (tempPax > 0)
-                {
-                    coupeCount = tempPax / wagons[1].Seats;
-                    tempPax = tempPax % wagons[1].Seats;
-                }
-                else if (tempPax > 0)
-                {
-                    svCount = tempPax / wagons[2].Seats;
-                    tempPax = tempPax % wagons[2].Seats;
-                }
-                else if (tempPax > 0)
-                {
-                    luxCount = tempPax / wagons[4].Seats;
-                    tempPax = tempPax % wagons[4].Seats;
+            _wagonNumber = 1;
 
-                    if (tempPax > 0)
+            if (tempPax > 0) 
+            {
+                reservedSeatCount = tempPax / _wagons[0].Seats;
+
+                while (tempPax >= _wagons[0].Seats)
+                {
+                    tempPax -= _wagons[0].Seats;
+                    AddWag(_wagons[0].Type, _wagons[0].Seats);
+                }
+
+                coupeCount = tempPax / _wagons[1].Seats;
+
+                while (tempPax >= _wagons[1].Seats)
+                {
+                    tempPax -= _wagons[1].Seats;
+                    AddWag(_wagons[1].Type, _wagons[1].Seats);
+                }
+
+                svCount = tempPax / _wagons[2].Seats;
+
+                while (tempPax >= _wagons[2].Seats)
+                {
+                    tempPax -= _wagons[2].Seats;
+                    AddWag(_wagons[2].Type, _wagons[2].Seats);
+                }
+
+                luxCount = tempPax / _wagons[3].Seats;
+
+                while (tempPax <= _wagons[2].Seats - 1 && tempPax > 0)
+                {
+                    if (tempPax > 0 && tempPax < _wagons[3].Seats)
                     {
-                        luxCount += 1;
+                        AddWag(_wagons[3].Type, tempPax);
+                        tempPax = 0;
+                    }
+                    else
+                    {
+                        tempPax -= _wagons[3].Seats;
+                        AddWag(_wagons[3].Type, _wagons[3].Seats);
                     }
                 }
+                
+                IsTrainFormed = true;
+                Console.WriteLine("Состав сформирован и готов к отправке");
             }
-
-            AddWagons(reservedSeatCount, coupeCount, svCount, luxCount);
-            IsTrainFormed = true;
-        }
-
-        private void AddWagons(int reservedSeatCount, int coupeCount, int svCount, int luxCount)
-        {
-            int wagonCount = 0;
-
-            for (int i = 0 ; i > wagonCount; i++ )
+            else
             {
-                //Создать добавление нужных вагонов в список _train на основе их количества.
+                Console.WriteLine("Сначала нужно продать билеты");
             }
         }
 
+        private void AddWag(string type, int pax)
+        {
+            if (type == "Плацкарт")
+            {
+                _train.Add(new Wagon("Плацкарт", 54, pax, _wagonNumber++));
+            }
+            if (type == "Купе")
+            {
+                _train.Add(new Wagon("Купе", 36, pax, _wagonNumber++));
+            }
+            if (type == "СВ")
+            {
+                _train.Add(new Wagon("СВ", 18, pax, _wagonNumber++));
+            }
+            if (type == "Люкс")
+            {
+                _train.Add(new Wagon("Люкс", 6, pax, _wagonNumber++));
+            }
+        }
+
+        public void ShowTrainParameters()
+        {
+            if (IsTrainFormed)
+            {
+                int checkTotalPax = 0;
+
+                Console.WriteLine("Состав сформирован следующим образом:");
+
+                foreach (var wagon in _train)
+                {
+                    Console.WriteLine($"Номер вагона - {wagon.WagonNumber} , Тип вагона - {wagon.Type} , Пассажиров в вагоне - {wagon.Pax}");
+                    checkTotalPax += wagon.Pax;
+                }
+
+                Console.WriteLine($"Всего пассажиров в поезде - {checkTotalPax}");
+            }
+            else
+            {
+                Console.WriteLine("Состав ещё не сформирован");
+            }
+        }
+
+        public void SendTrain()
+        {
+            Direction = "Не задано";
+            Tickets = 0;
+            _train.Clear();
+            IsTrainFormed = false;
+
+            Console.WriteLine("Состав отправлен");
+        }
     }
 
     class Wagon
     {
         public string Type { get; protected set; }
         public int Seats { get; protected set; }
+        public int Pax { get; protected set; }
         public int WagonNumber { get; protected set; }
 
-        public Wagon(string type, int seats, int wagonNumber)
+        public Wagon(string type, int seats, int pax, int wagonNumber)
         {
             Type = type;
             Seats = seats;
+            Pax = pax;
             WagonNumber = wagonNumber;
         }
 
-        public Wagon(string type, int seats) : this (type, seats, 0)
+        public Wagon(string type, int seats) : this (type, seats, 0, 0)
         {
 
         }
