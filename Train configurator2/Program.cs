@@ -116,10 +116,6 @@
 
     class Terminal
     {
-        public string Direction { get; private set; } = "Не задано";
-        public int Tickets { get; private set; } = 0;
-        public bool IsTrainFormed { get; private set; } = false;
-
         private int _wagonNumber;
 
         private List<Wagon> _train = new List<Wagon>();
@@ -134,6 +130,10 @@
                 new Wagon("СВ", 18),
                 new Wagon("Люкс", 6),
             };
+
+        public string Direction { get; private set; } = "Не задано";
+        public int Tickets { get; private set; } = 0;
+        public bool IsTrainFormed { get; private set; } = false;
 
         public void CreateDirection()
         {
@@ -240,6 +240,38 @@
             }
         }
 
+        public void ShowTrain()
+        {
+            if (IsTrainFormed)
+            {
+                int checkTotalPax = 0;
+
+                Console.WriteLine("Состав сформирован следующим образом:");
+
+                foreach (Wagon wagon in _train)
+                {
+                    _wagon.ShowParameters(wagon);
+                    checkTotalPax += wagon.Pax;
+                }
+
+                Console.WriteLine($"Всего пассажиров в поезде - {checkTotalPax}");
+            }
+            else
+            {
+                Console.WriteLine("Состав ещё не сформирован");
+            }
+        }
+
+        public void SendTrain()
+        {
+            Direction = "Не задано";
+            Tickets = 0;
+            _train.Clear();
+            IsTrainFormed = false;
+
+            Console.WriteLine("Состав отправлен");
+        }
+
         private void AddWagon(string type, int pax)
         {
             if (type == "Плацкарт")
@@ -259,37 +291,10 @@
                 _train.Add(new Wagon("Люкс", 6, pax, _wagonNumber++));
             }
         }
-
-        public void ShowTrain()
-        {
-            if (IsTrainFormed)
-            {
-                _wagon.ShowParameters(_train);
-            }
-            else
-            {
-                Console.WriteLine("Состав ещё не сформирован");
-            }
-        }
-
-        public void SendTrain()
-        {
-            Direction = "Не задано";
-            Tickets = 0;
-            _train.Clear();
-            IsTrainFormed = false;
-
-            Console.WriteLine("Состав отправлен");
-        }
     }
 
     class Wagon
     {
-        public string Type { get; protected set; }
-        public int Seats { get; protected set; }
-        public int Pax { get; protected set; }
-        public int Number { get; protected set; }
-
         public Wagon(string type, int seats, int pax, int number)
         {
             Type = type;
@@ -307,19 +312,14 @@
         {
         }
 
-        public void ShowParameters(List <Wagon> wagons)
+        public string Type { get; protected set; }
+        public int Seats { get; protected set; }
+        public int Pax { get; protected set; }
+        public int Number { get; protected set; }
+
+        public void ShowParameters( Wagon wagon)
         {
-            int checkTotalPax = 0;
-
-            Console.WriteLine("Состав сформирован следующим образом:");
-
-            foreach (Wagon wagon in wagons)
-            {
-                Console.WriteLine($"Номер вагона - {wagon.Number} , Тип вагона - {wagon.Type} , Пассажиров в вагоне - {wagon.Pax}");
-                checkTotalPax += wagon.Pax;
-            }
-
-            Console.WriteLine($"Всего пассажиров в поезде - {checkTotalPax}");
+            Console.WriteLine($"Номер вагона - {wagon.Number} , Тип вагона - {wagon.Type} , Пассажиров в вагоне - {wagon.Pax}"); //разнести методы
         }
     }
 }
